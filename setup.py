@@ -14,6 +14,12 @@ setup(name='olpy',
       },
       install_requires=[
           'auth0-python',
+          'cryptography',
+          'setuptools_rust'
+      ],
+      setup_requires=[
+          'cryptography',
+          'setuptools_rust'
       ],
       zip_safe=False
 )
