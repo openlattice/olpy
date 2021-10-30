@@ -23,7 +23,6 @@ class ValidationReport:
     def print_status(self, log_level = "all"):
         """
         Print the status of the report.
-
         log_level can be "all", "failures", or "none".
         """
 
