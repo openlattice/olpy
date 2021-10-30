@@ -19,10 +19,9 @@ cols += palettable.tableau.Tableau_20.hex_colors
 cols += palettable.tableau.GreenOrange_12.hex_colors
 cols += palettable.tableau.BlueRed_12.hex_colors
 
-
 class EdmViz(object):
-    def __init__(self, flight=None, schema=None, flights=None, engine='dot', splines='curved', aesthetics={}):
-        self.graph = graphviz.Digraph(comment='Flight', engine=engine, graph_attr={"splines": splines})
+    def __init__(self, flight=None, schema=None, flights = None, engine = 'dot', splines = 'curved', aesthetics = {}):
+        self.graph = graphviz.Digraph(comment='Flight',engine=engine, graph_attr={"splines": splines})
         if sum([flight != None, schema != None, flights != None]) != 1:
             raise ValueError("Please specify either a flight, multiple flights or a schema.")
         elif schema != None:
@@ -34,23 +33,22 @@ class EdmViz(object):
         elif flights != None:
             self.edm_api = flights[0].edm_api
             self.flights = flights
-        self.aesthetics = self.get_aesthetics(manual_aesthetics=aesthetics)
+        self.aesthetics = self.get_aesthetics(manual_aesthetics = aesthetics)
 
     def get_aesthetics(self, manual_aesthetics):
-        with open(
-                os.path.join(
-                    os.path.dirname(
-                        os.path.realpath(__file__)
+        with open (
+            os.path.join(
+                os.path.dirname(
+                    os.path.realpath(__file__)
                     ),
-                    'resources/aesthetics.yaml'
+                'resources/aesthetics.yaml'
                 ), 'r') as infile:
             aesth = yaml.load(infile, Loader=yaml.FullLoader)
 
         outdict = {}
         for key in ['entityDefinitions', 'associationDefinitions']:
             default = {**aesth['all'], **aesth[key]}
-            withmanual = {**default, **{k: v for k, v in manual_aesthetics.items() if
-                                        not k in ['entityDefinitions', 'associationDefinitions']}}
+            withmanual = {**default, **{k:v for k,v in manual_aesthetics.items() if not k in ['entityDefinitions', 'associationDefinitions']}}
             if key in manual_aesthetics:
                 withmanual = {**default, **manual_aesthetics[key]}
             outdict[key] = withmanual
@@ -58,13 +56,13 @@ class EdmViz(object):
             outdict['important'] = manual_aesthetics['important']
         return outdict
 
-    def add_entities(self, schema, fields=[], important=[]):
+    def add_entities(self, schema, fields = [], important = []):
         # aesthetics
         aesthetics = copy.deepcopy(self.aesthetics['entityDefinitions'])
         important_aesthetics = copy.deepcopy(self.aesthetics['entityDefinitions'])
         if 'important' in self.aesthetics.keys():
             important_aesthetics.update(self.aesthetics['important'])
-
+        
         # grab nodes
         for title, object in schema['nodes'].items():
             fqn = set([x['fqn'] for x in object['objects']])
@@ -73,13 +71,14 @@ class EdmViz(object):
             aes = important_aesthetics if fqn in important or title in important else aesthetics
             self.graph.attr('node', aes)
             if not fqn == title:
-                thistitle = "{title} ({fqn})".format(title=title, fqn=fqn)
+                thistitle = "{title} ({fqn})".format(title=title, fqn = fqn)
             else:
                 thistitle = title
-            box = create_box(title=thistitle, object=object, fields=fields, edmApi=self.edm_api, **aes)
+            box = create_box(title=thistitle, object=object, fields=fields, edmApi = self.edm_api, **aes)
             self.graph.node(title, box)
 
-    def add_associations(self, schema, fields=[], split_associations=False, plotlinks=True, important=[]):
+
+    def add_associations(self, schema, fields = [], split_associations = False,plotlinks=True, important = []):
 
         aesthetics = copy.deepcopy(self.aesthetics['associationDefinitions'])
         important_aesthetics = copy.deepcopy(self.aesthetics['associationDefinitions'])
@@ -100,17 +99,17 @@ class EdmViz(object):
             fqn = list(fqn)[0]
             if len(fqn.split(".")) < 2:
                 print("this is it: " + str(title) + str(object) + str(fqn) + str(schema))
-            association_type_id = self.edm_api.get_entity_type_id(namespace=fqn.split('.')[0], name=fqn.split('.')[1])
+            association_type_id = self.edm_api.get_entity_type_id(namespace = fqn.split('.')[0], name = fqn.split('.')[1])
             association_type = self.edm_api.get_association_type(association_type_id)
             direction = "both" if association_type.bidirectional else "forward"
 
             # create node if splitassocaitions
             if split_associations:
                 if not fqn == title:
-                    thistitle = "{title} ({fqn})".format(title=title, fqn=fqn)
+                    thistitle = "{title} ({fqn})".format(title=title, fqn = fqn)
                 else:
                     thistitle = title
-                box = create_box(title=thistitle, object=object, fields=fields, edmApi=self.edm_api, **aesthetics)
+                box = create_box(title=thistitle, object=object, fields=fields, edmApi = self.edm_api, **aesthetics)
                 self.graph.node(title, box)
 
             if plotlinks:
@@ -118,19 +117,20 @@ class EdmViz(object):
                 for edge in object['edges']:
                     aes = important_aesthetics if edge[0] in important or edge[1] in important else aesthetics
                     self.graph.attr('node', aes)
-
+                    
                     if not split_associations:
                         self.graph.edge(edge[0], edge[1],
-                                        label=title, dir=direction, **aes)
+                                   label=title,  dir=direction, **aes)
                     else:
                         if not edge[0] in halfdone['srcs']:
-                            self.graph.edge(edge[0], title, label=title, dir=direction, **aes)
+                            self.graph.edge(edge[0], title, label=title, dir = direction, **aes)
                             halfdone['srcs'].append(edge[0])
                         if not edge[1] in halfdone['dsts']:
-                            self.graph.edge(title, edge[1], label=edge[1], dir=direction, **aes)
+                            self.graph.edge(title, edge[1], label = edge[1], dir=direction, **aes)
                             halfdone['dsts'].append(edge[1])
-
-    def get_schema(self, type="fqn"):
+        
+    
+    def get_schema(self, type = "fqn"):
         if 'flight' in dir(self):
             schema = self.flight.transform_schema(type)
         elif 'flights' in dir(self):
@@ -143,11 +143,10 @@ class EdmViz(object):
             raise ValueError("No flight or flights were specified")
         return schema
 
-    def create_flight_plot(self, type="fqn", fields=[], split_associations=False, plotlinks=True, important=[]):
+    def create_flight_plot(self, type="fqn", fields = [], split_associations=False, plotlinks=True, important = []):
         schema = self.get_schema(type)
-        self.add_entities(schema=schema, fields=fields, important=important)
-        self.add_associations(schema=schema, fields=fields, split_associations=split_associations, plotlinks=plotlinks,
-                              important=important)
+        self.add_entities(schema = schema, fields = fields, important = important)
+        self.add_associations(schema = schema, fields = fields, split_associations=split_associations, plotlinks=plotlinks, important = important)
         return self.graph
 
 
@@ -182,7 +181,7 @@ def get_property_dict(entity, edmApi):
         entedm = edmApi.get_entity_type(entid)
         primaries = [get_fqn(edmApi.get_property_type(x).type) for x in entedm.key]
     except openlattice.rest.ApiException as exc:
-        print("Couldn't find entitytype %s, not distinguishing primary from secondary keys !" % entity['fqn'])
+        print("Couldn't find entitytype %s, not distinguishing primary from secondary keys !"%entity['fqn'])
         primaries = []
 
     # create a dictionary with keys
@@ -195,16 +194,15 @@ def get_property_dict(entity, edmApi):
             properties['secondary'][prop['fqn']] = cols
     return properties
 
-
-def print_string(instring, bold=False, fontcolor='white'):
+def print_string(instring, bold=False, fontcolor = 'white'):
     cutoff = 50
     if len(instring) > cutoff:
         instringsplit = instring.split(",")
         rows = []
         newstring = ""
         for ind, inpart in enumerate(instringsplit):
-            suffix = "" if ind == len(instringsplit) - 1 else ", "
-            newstring += "%s%s" % (inpart, suffix)
+            suffix = "" if ind == len(instringsplit)-1 else ", "
+            newstring += "%s%s"%(inpart, suffix)
             if len(newstring) > cutoff:
                 rows.append(newstring)
                 newstring = ""
@@ -229,10 +227,10 @@ def print_string(instring, bold=False, fontcolor='white'):
             </td>
         </tr>
         '''.format(
-            row=row,
-            boldin="<b>" if bold else "",
-            boldout="</b>" if bold else "",
-            fontcolor=fontcolor).replace("  ", "")
+            row = row,
+            boldin = "<b>" if bold else "",
+            boldout = "</b>" if bold else "",
+            fontcolor = fontcolor).replace("  ","")
     return outstring
 
 
@@ -241,15 +239,15 @@ def get_property_rows(entity, edmApi, **kwargs):
     # create string
     outstring = ""
     for prim_fqn, columns in props['primary'].items():
-        fullstring = "{fqn} ({cols})".format(fqn=prim_fqn, cols=", ".join(columns))
-        outstring += print_string(fullstring, bold=False, fontcolor=kwargs['fontcolor'])
+        fullstring = "{fqn} ({cols})".format(fqn=prim_fqn, cols = ", ".join(columns))
+        outstring += print_string(fullstring, bold = False, fontcolor = kwargs['fontcolor'])
     for fqn, columns in props['secondary'].items():
-        fullstring = "{fqn} ({cols})".format(fqn=fqn, cols=", ".join(columns))
-        outstring += print_string(fullstring, bold=False, fontcolor=kwargs['propertyfontcolor'])
+        fullstring = "{fqn} ({cols})".format(fqn=fqn, cols = ", ".join(columns))
+        outstring += print_string(fullstring, bold = False, fontcolor = kwargs['propertyfontcolor'])
     return outstring
 
-
 def get_primary_key_rows(entity, edmApi, **kwargs):
+
     fqn_split = entity['fqn'].split(".")
     try:
         entid = edmApi.get_entity_type_id(namespace=fqn_split[0], name=fqn_split[1])
@@ -257,8 +255,8 @@ def get_primary_key_rows(entity, edmApi, **kwargs):
         primaries = [get_fqn(edmApi.get_property_type(x).type) for x in entedm.key]
     except openlattice.rest.ApiException as exc:
         primaries = []
-        print("WARNING: could not find primary keys for %s" % entity['name'])
-
+        print("WARNING: could not find primary keys for %s"%entity['name'])
+    
     # create a dictionary with primary keys
     prims = {}
     for prop in entity['properties']:
@@ -274,24 +272,20 @@ def get_primary_key_rows(entity, edmApi, **kwargs):
     # create string
     outstring = ""
     for prim_fqn, columns in prims.items():
-        fullstring = "{fqn} ({cols})".format(fqn=prim_fqn, cols=", ".join(columns))
-        outstring += print_string(fullstring, bold=False, fontcolor=kwargs['fontcolor'])
+        fullstring = "{fqn} ({cols})".format(fqn=prim_fqn, cols = ", ".join(columns))
+        outstring += print_string(fullstring, bold = False, fontcolor = kwargs['fontcolor'])
     return outstring
 
-
 def get_name(entity, edmApi, **kwargs):
-    return print_string(entity['name'], bold=False, fontcolor=kwargs['fontcolor'])
-
+    return print_string(entity['name'], bold = False, fontcolor = kwargs['fontcolor'])
 
 def get_entityset_name(entity, edmApi, **kwargs):
-    return print_string(entity['entityset_name'], bold=False, fontcolor=kwargs['fontcolor'])
-
+    return print_string(entity['entityset_name'], bold = False, fontcolor = kwargs['fontcolor'])
 
 def get_flight_name(entity, edmApi, **kwargs):
-    return print_string(entity['flight_name'], bold=True, fontcolor=kwargs['fontcolor'])
+    return print_string(entity['flight_name'], bold = True, fontcolor = kwargs['fontcolor'])
 
-
-def create_box(title, object, fields=[], edmApi=None, important=False, **kwargs):
+def create_box(title, object, fields = [], edmApi=None, important=False, **kwargs):
     functions = {
         "primary_key": get_primary_key_rows,
         "properties": get_property_rows,
@@ -310,22 +304,20 @@ def create_box(title, object, fields=[], edmApi=None, important=False, **kwargs)
     </td></tr>\
     {string}\
     </table>>'.format(
-        fqn=title,
-        string=outtable,
-        cellspacing=kwargs['cellspacing'],
-        tableborder=kwargs['tableborder'],
-        cellborder=kwargs['cellborder'],
-        cellpadding=kwargs['cellpadding'],
-        titlefontcolor=kwargs['titlefontcolor'],
-        bgcolor=kwargs['tablebgcolor'],
-        bordercolor=kwargs['tablebordercolor']
+         fqn = title,
+         string = outtable,
+         cellspacing = kwargs['cellspacing'],
+         tableborder = kwargs['tableborder'],
+         cellborder = kwargs['cellborder'],
+         cellpadding = kwargs['cellpadding'],
+         titlefontcolor = kwargs['titlefontcolor'],
+         bgcolor = kwargs['tablebgcolor'],
+         bordercolor = kwargs['tablebordercolor']
     )
     return box
 
-
 def get_fqn(type):
     return ".".join([type.namespace, type.name])
-
 
 def get_columns(property):
     if isinstance(property['column'], str):
