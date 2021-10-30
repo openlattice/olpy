@@ -1,4 +1,5 @@
 import olpy
+import importlib
 import pandas as pd
 import uuid
 import yaml
@@ -92,6 +93,7 @@ class Integration(object):
             raise ValueError("No clean table name specified")
         if atlas_organization_id is None and self.flight_path is None:
             raise ValueError("At least one organization ID or flight path must be specified!")
+        
 
         # finish setup
         self.configuration = olpy.misc.get_config(jwt=self.jwt, base_url=self.base_url)

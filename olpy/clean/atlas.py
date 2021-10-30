@@ -13,6 +13,7 @@ from geoalchemy2 import Geometry, WKTElement
 def get_temp_table_name(table_name, dt=datetime.datetime.now(timezone("US/Pacific"))):
     """
     Produces the name of a temp table based on the original name and the current PST.
+
     Convention followed: zzz_<original name>_yyyy_(m)m_(d)d_(h)h_(m)m_(s)s_pst.
     """
 
@@ -86,10 +87,10 @@ def overwrite_tables(df, table_name, engine, geom_data_type = None, geometry_col
             pass
 
     if geometry_col is not None:
-        df.to_sql(table_name,
-                   engine,
-                   if_exists='append',
-                    index=False,
+        df.to_sql(table_name, 
+                   engine, 
+                   if_exists='append', 
+                    index=False, 
                     dtype={geometry_col: Geometry(geom_data_type, srid= crs)})
     else:
         df.to_sql(table_name, engine, if_exists = "append", index = False)
@@ -142,6 +143,7 @@ def limit_query(sql, limit):
 def cols_to_string_with_dubquotes(cols, backslash=False):
     """
     Gets a string representation of a list of strings, using double quotes.
+
     Useful for converting list of columns to a string for use in a query.
     Backslashes are possible if the query will be passed as a string argument to (for instance) Shuttle.
     """
@@ -171,6 +173,7 @@ def get_cols_from_sql(sql, con):
 def get_datatypes(table_name, engine):
     '''
     Gets a pandas.DataFrame with column datatypes for a given table and sqlalchemy.Engine
+
     :param table_name: string
     :param engine: sqlalchemy.Engine
     :return: pandas.DataFrame
