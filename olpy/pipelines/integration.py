@@ -277,7 +277,7 @@ class Integration(object):
                 statement = f'{statement} {shuttle_args}'
 
             if memory_size is not None:
-                statement = 'SHUTTLE_OPTS="-Xmx{:n}g -Xmx{:n}g" '.format(memory_size, memory_size) + statement
+                statement = 'SHUTTLE_OPTS="-Xms{:n}g -Xmx{:n}g" '.format(memory_size, memory_size) + statement
 
             print(statement.replace(self.configuration.access_token, "***"))
 
